@@ -31,9 +31,52 @@ export default new Router({
       path: '/video',
       name: 'video',
       component: () => import('./components/video.vue'),
-    }
-      
-
+    },
     
+    {
+      path: '/vueplayer',
+      name: 'vueplayer',
+      component: () => import('./components/vueplayer.vue'),
+    },
+    {
+      path: '/hytest',
+      name: 'hytest',
+      component: () => import('./components/hytest.vue'),
+    },
+    {
+      path: '/echarts',
+      name: 'echarts',
+      component: () => import('./components/echarts.vue'),
+    },
+    {
+      path: '/bdmap',
+      name: 'bdmap',
+      component: () => import('./components/bdmap.vue'),
+    },
+    {
+      path: '/gdmap',
+      name: 'gdmap',
+      component: () => import('./components/gdmap.vue'),
+    },
+    {
+      path: '/autoscroll',
+      name: 'autoscroll',
+      component: () => import('./components/autoscroll.vue'),
+    },
+    {
+      path: '/hero',
+      name: 'hero',
+      component: () => import('./components/hero.vue'),
+    },
+    {
+      path: '/h5steam',
+      name: 'h5steam',
+      component: () => import('./components/h5steam.vue'),
+    },
+    {
+      path: '/calendar',
+      name: 'calendar',
+      component: () => import('./components/calendar.vue'),
+    },
   ]
 })
