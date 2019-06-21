@@ -4,10 +4,14 @@
       <div class="input-card" >
         <h3 style="line-height: 50px; color:#fff">轨迹回放控制</h3>
         <div class="input-item">
+          <div>运动速度{{speedCount}}</div>
           <el-button type="primary" @click="startAnimation()" class="btn">开始回放</el-button>
           <el-button type="primary" @click="pauseAnimation" class="btn">暂停回放</el-button>
           <el-button type="primary" @click="resumeAnimation" class="btn">继续回放</el-button>
           <el-button type="primary" @click="stopAnimation" class="btn">停止回放</el-button>
+          <el-button type="primary" @click="startAdd()" class="btn">运动加速</el-button>
+          <el-button type="primary" @click="startRed()" class="btn">运动减速</el-button>
+          <el-button type="primary" @click="printData()" class="btn">打印数据</el-button>
         </div>
       </div>
   </div>
@@ -15,7 +19,6 @@
 <script>
 export default {
   data() {
-
     return {
       h3tit: "人员轨迹",
       timer:null,
@@ -45,62 +48,29 @@ export default {
       firstArr: [116.478935, 39.997761],
       polyline: {},
       passedPolyline: {},
-      
-      
-      flag:false,
-      
-      
-      
+      markerSpeed: 200,//运动速度
+      speedCount: 1,//速度计数
+      havePassedLine:[],//已经运动的点
+      NoPassedLine:[],//未运动的点
+      lineLength:null,
     };
   },
   mounted() {
-   
-    // this.currentAnimation();
-    
-    this.initMap()
-    
+    setTimeout(() => {
+      this.initMap()
+      this.initroad()
+    }, 1000);
   },
   beforeDestroy(){
-    if(this.timer){
-      window.clearInterval(this.timer)
-    }
+    
   },
   methods: {
-  
-    // sure_click() {
-    //   this.$refs.dateForm.validate(valid => {
-    //     if (valid) {
-    //       linePersonnelLocus([
-    //         window.hy.db.cookie.getValue("appId"),
-    //         {
-    //           safeHatNum: 1062001,
-    //           startTime: this.dateForm.value1,
-    //           endTime: this.dateForm.value2
-    //         }
-    //       ]).then(data => {
-    //         if (data.statusCode == 200) {
-    //           window.clearInterval(this.timer)
-    //           this.h3tit = "历史人员轨迹";
-    //           this.flag=true
-    //           this.datecr = false;
-    //           this.resetForm();
-    //           this.lineArr = [];
-    //           this.firstArr = [];
-    //           data.result.forEach(item => {
-    //             this.lineArr.push([item.lng, item.lat]);
-    //             this.firstArr.push(data.result[0].lng, data.result[0].lat);
-    //           });
-    //           this.initMap();
-    //           this.startAnimation();
-    //         }
-    //       });
-    //     }
-    //   });
-    // },
-    // chuxian() {
-    //   this.datecr = true;
-    //   window.clearInterval(this.timer)
-    // },
+    //打印数据
+    printData(){
+      console.log(this.lineLength);
+      console.log(this.havePassedLine);
+      console.log(this.NoPassedLine);
+    },
     initroad(){
       // 绘制轨迹
       this.polyline = new AMap.Polyline({
@@ -112,7 +82,7 @@ export default {
         strokeWeight: 6 //线宽
         // strokeStyle: "solid"  //线样式
       });
-
+      //绘制过的轨迹
       var passedPolyline = new AMap.Polyline({
         map: this.map,
         strokeColor: "#AF5", //线颜色
@@ -122,14 +92,22 @@ export default {
         // strokeStyle: "solid"  //线样式
       });
       this.marker.on("moving", function(e) {
+        // console.log(e.passedPath)
+        setTimeout(() => {
+          this.lineLength=e.passedPath.length
+        this.havePassedLine=e.passedPath
+        }, 100);
+        console.log(e.passedPath.length)
+        console.log(e.passedPath)
         passedPolyline.setPath(e.passedPath);
+        
       });
-      this.map.setFitView();
+      this.map.setFitView();//合适的视口
     },
     initMap() {
       this.map = new AMap.Map("container", {
         resizeEnable: true,//窗口大小调整
-        center: this.firstArr,
+        center: this.firstArr,//中心
         zoom: 20
       });
 
@@ -141,33 +119,11 @@ export default {
         autoRotation: true,//自动旋转
         angle:-90,//图片旋转角度
       });
-
-      // 绘制轨迹
-      this.polyline = new AMap.Polyline({
-        map: this.map,
-        path: this.lineArr,
-        showDir: true,
-        strokeColor: "#28F", //线颜色
-        // strokeOpacity: 1,     //线透明度
-        strokeWeight: 6 //线宽
-        // strokeStyle: "solid"  //线样式
-      });
-
-      var passedPolyline = new AMap.Polyline({
-        map: this.map,
-        strokeColor: "#AF5", //线颜色
-        //path: this.lineArr,
-        // strokeOpacity: 1,     //线透明度
-        strokeWeight: 6 //线宽
-        // strokeStyle: "solid"  //线样式
-      });
-      this.marker.on("moving", function(e) {
-        passedPolyline.setPath(e.passedPath);
-      });
-      this.map.setFitView();
     },
     startAnimation() {
-      this.marker.moveAlong(this.lineArr, 200);
+      this.speedCount = 1;
+      this.markerSpeed = 200;
+      this.marker.moveAlong(this.lineArr, this.markerSpeed);
     },
     pauseAnimation() {
       this.marker.pauseMove();
@@ -178,44 +134,33 @@ export default {
     stopAnimation() {
       this.marker.stopMove();
     },
-    // currentAnimation() {
-    //   this.flag=false;
-    //   lineCurrentPosition([
-    //       window.hy.db.cookie.getValue("appId"),
-    //       { safeHatNum: 1062001 }
-    //     ]).then(data => {
-    //       if (data.statusCode == 200) {
-    //         this.h3tit = "实时人员轨迹";
-    //         this.lineArr = [];
-    //         this.firstArr = [];
-    //         data.result.forEach(item => {
-    //           this.lineArr.push([item.lng, item.lat]);
-    //           this.firstArr.push(data.result[0].lng, data.result[0].lat);
-    //         })
-    //         this.initMap();
-    //         this.startAnimation();
-
-    //       }
-    //     });
-    //     if(this.firstArr.length>0) {
-    //       this.timer = setInterval(() => {
-    //         lineCurrentPosition([
-    //           window.hy.db.cookie.getValue("appId"),
-    //           {safeHatNum: 1062001}
-    //         ]).then(data => {
-    //           if (data.statusCode == 200) {
-    //             this.lineArr=[]
-    //             data.result.forEach(item => {
-    //               this.lineArr.push([item.lng, item.lat]);
-    //             });
-    //             this.initroad();
-    //             this.startAnimation();
-    //           }
-    //         });
-    //       }, 2000)
-
-    //     }
-    // }
+    
+    //加速
+    startAdd() {
+      if (this.markerSpeed < 1000) {
+        this.markerSpeed = 200;
+        this.speedCount++;
+        this.speedCount = this.speedCount++;
+        this.markerSpeed = this.markerSpeed * this.speedCount;
+        this.marker.moveAlong(this.lineArr, this.markerSpeed);
+      } else {
+        this.speedCount = 5;
+      }
+    },
+    //减速
+    startRed() {
+      if (this.markerSpeed > 200) {
+        this.markerSpeed = 200;
+        this.speedCount--;
+        this.speedCount = this.speedCount--;
+        console.log(this.speedCount);
+        this.markerSpeed = this.markerSpeed * this.speedCount;
+        this.marker.moveAlong(this.lineArr, this.markerSpeed);
+      } else {
+        this.marker.moveAlong(this.lineArr, 200);
+        this.speedCount = 1;
+      }
+    },
   }
 }
 </script>
